@@ -147,9 +147,26 @@ Pages 입구는 그 화면 **맨 아래 한 줄**입니다:
    npx wrangler r2 object put webgl-assets/MazM_Studio_WebGL.data --file docs/Build/MazM_Studio_WebGL.data --remote
    npx wrangler r2 object put webgl-assets/MazM_Studio_WebGL.wasm --file docs/Build/MazM_Studio_WebGL.wasm --remote
    ```
-   프록시가 `Cache-Control: public, max-age=3600` 을 내보내므로 **최대 1시간 내 자동 갱신**.
-   즉시 반영이 필요하면 CF 대시보드에서 캐시 퍼지.
 3. 업로드 후 검증: `wrangler r2 object get ... --remote --file <임시경로>` 후 원본과 `cmp`
+
+### 반영 시점 — 캐시는 브라우저에만 있음 (실측 확인)
+
+프록시 응답 헤더는 `cache-control: public, max-age=3600` + `etag`.
+**`cf-cache-status`·`age` 헤더가 없음** = Pages Functions 응답을 Cloudflare 엣지가 캐싱하지 않고
+매 요청마다 R2에서 읽어옴. 따라서 이 1시간은 **순전히 브라우저 캐시**다.
+
+| 상황 | 반영 |
+|---|---|
+| 처음 접속 / 캐시 없는 브라우저 | **즉시** |
+| 최근 1시간 내 로드한 브라우저 | 최대 1시간 구버전 (재검증 없이 로컬 사본 사용) |
+| 1시간 경과 후 | etag 재검증 → 변경 시 새로 받음 |
+
+⚠️ **CF 대시보드 "캐시 퍼지"는 효과 없다.** 엣지가 캐시하지 않으므로 퍼지할 대상이 없고,
+브라우저 캐시는 원격으로 삭제할 수 없다. 즉시 반영이 필요하면 **해당 PC에서 강제 새로고침**
+(`⌘⇧R` / `Ctrl+Shift+R`)이 유일한 방법.
+
+→ 운영 원칙: **재빌드·업로드는 수업 시작 최소 1시간 전에 완료할 것.**
+   `max-age`를 낮추는 것도 가능하나, 30명이 84MB를 받는 환경에서 재접속 비용이 커지므로 권장하지 않음.
 
 ### 재빌드 시 확인 항목
 
