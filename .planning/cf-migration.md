@@ -248,9 +248,20 @@ GitHub Pages는 **월 100GB 소프트 대역폭 한도**. 게임 1회 완전 로
 
 ## 다음 단계 (브리프 §4 — 이번 작업에서 의도적으로 하지 않은 것)
 
+- [x] **CF 플레이 링크 컬럼 추가** — 2026-08-15 완료·테스트 통과.
+      `codes` 시트 I열 `(CF)Play Link`. 상세는 [`apps-script-play-links.md`](./apps-script-play-links.md)
+- [ ] **교사 안내 URL 교체** — **보류 중** (2026-08-15 시점). 브리프 §4대로 실제 수업 1회 이상 검증 후 진행
 - [ ] **GitHub Pages 중단** — 아직 하지 않음. 병행 유지 = 롤백 경로
-- [ ] **교사 안내 URL 교체** — CF에서 **실제 수업 1회 이상 검증 후** 진행
 - [ ] 커스텀 도메인, 압축 최적화 — 필요 시 별도 건
+- [ ] `mazm-studio-web` 자동 배포 확인 — 별건. CF에 옛 레포 경로(`birdy-mazm/mazm-studio-web`)가
+      연결돼 있으나 해당 레포는 `storymazm` 조직으로 이전됨. 다음 push 시 배포 여부 확인 필요
+
+### 신규 웹 스튜디오로 이관한 제약 요건
+
+초기 로딩 112MB 문제는 CF 이전으로 해소되지 않는다(대역폭이 아니라 페이로드 문제).
+실측·분석과 신규 버전 요구사항을 [`payload-constraints-for-next-version.md`](./payload-constraints-for-next-version.md)
+에 정리했으며, **사본을 신규 개발 프로젝트의 planning으로 이관함(2026-08-15).**
+이후 요구사항 조정은 신규 프로젝트 쪽 사본에서 이루어진다.
 
 ### 남은 알려진 제약
 

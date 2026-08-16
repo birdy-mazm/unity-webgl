@@ -64,6 +64,9 @@ H1: ={"(Dev) Play Link";  ARRAYFORMULA(IF(D2:D="","",HYPERLINK(blacklist!$A$4 & 
 I1: ={"(CF)Play Link";    ARRAYFORMULA(IF(D2:D="","",HYPERLINK(blacklist!$A$2 & "?resetPrefs=1&sheetLink=" & D2:D, "Link")))}
 ```
 
+> **I1(CF) 적용 완료 — 2026-08-15, 동작 테스트 통과.**
+> G·H와 Apps Script는 미변경. 되돌리려면 I1 삭제만 하면 된다.
+
 ### 베이스 URL은 `blacklist` 시트 A열에 있음
 
 `blacklist` 시트는 **차단 목록과 URL 설정을 겸한다.**
