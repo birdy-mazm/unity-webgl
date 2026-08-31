@@ -335,14 +335,21 @@ rm -f docs/Build/Build/Build.data docs/Build/Build/Build.wasm
 
 옛 `MazM_Studio_WebGL.*` 4개는 v2 트리에서 이미 삭제됐으므로 빌드 커맨드에 옛 경로 삭제는 불필요 — 25MiB 초과인 신규 2개만 지우면 됨. R2 바인딩(`WEBGL_ASSETS` → `webgl-assets`)은 기존과 동일하게 유지 — 신규 키(`Build.data`, `Build.wasm`)도 같은 버킷에 저장하면 되므로 바인딩 추가 작업 불필요.
 
-### R2 업로드 명령 — 준비만 함, **실행은 Birdy 지시 후**
+### R2 업로드 — ✅ 완료 (2026-08-31)
 
 ```bash
 npx wrangler r2 object put webgl-assets/Build.data --file docs/Build/Build/Build.data --remote
 npx wrangler r2 object put webgl-assets/Build.wasm --file docs/Build/Build/Build.wasm --remote
 ```
 
-업로드 후 검증 (기존 방식과 동일 — GET만 유효, HEAD는 오탐):
+두 건 모두 `Resource location: remote` 확인. 업로드 후 `wrangler r2 object get ... --remote`로 재다운로드하여 `cmp`로 원본과 바이트 단위 대조 — **완전 일치**.
+
+| 파일 | 크기 | 검증 |
+|---|---|---|
+| `Build.data` | 89,075,480 B | ✅ `cmp` 일치 |
+| `Build.wasm` | 41,085,993 B | ✅ `cmp` 일치 |
+
+업로드 후 배포 검증 (기존 방식과 동일 — GET만 유효, HEAD는 오탐):
 ```bash
 B=https://<v2-project-또는-preview-URL>
 for p in /Build/Build/Build.data /Build/Build/Build.wasm; do
@@ -354,8 +361,8 @@ done
 
 ### 미해결 / 확인 필요
 
-- [ ] R2에 `Build.data`, `Build.wasm` 업로드 (Birdy 지시 후 실행)
-- [ ] CF 대시보드에서 v2 프로젝트의 Build command를 위 값으로 교체
+- [x] R2에 `Build.data`, `Build.wasm` 업로드 — 2026-08-31 완료, 바이트 검증 통과
+- [ ] CF 대시보드에서 v2 프로젝트의 Build command를 `rm -f docs/Build/Build/Build.data docs/Build/Build/Build.wasm` 로 교체
 - [ ] 재배포 후 위 curl 검증 통과 확인
 - [ ] 브라우저 골든패스 확인 (게임 로드·로그인·편집·플레이)
 - [ ] `.wasm`이 39.2MiB로 커짐 — GitHub Pages 100MB 하드리밋 관련 여유는 이제 무관(CF가 유일한 서빙 경로로 전환 예정이므로)하지만, R2 저장·대역폭 산정 시 참고
