@@ -81,8 +81,8 @@
       }
 
       var basePath = getBasePath();
-      var buildPath = basePath + "Build";
-      var loaderUrl = buildPath + "/MazM_Studio_WebGL.loader.js";
+      var buildPath = basePath + "Build/Build";
+      var loaderUrl = buildPath + "/Build.loader.js";
 
       console.log("[WebGL] href =", window.location.href);
       console.log("[WebGL] pathname =", window.location.pathname);
@@ -96,9 +96,9 @@
       script.onload = function () {
         createUnityInstance(document.querySelector("#unity-canvas"), {
           arguments: [],
-          dataUrl: buildPath + "/MazM_Studio_WebGL.data",
-          frameworkUrl: buildPath + "/MazM_Studio_WebGL.framework.js",
-          codeUrl: buildPath + "/MazM_Studio_WebGL.wasm",
+          dataUrl: buildPath + "/Build.data",
+          frameworkUrl: buildPath + "/Build.framework.js",
+          codeUrl: buildPath + "/Build.wasm",
           streamingAssetsUrl: basePath + "StreamingAssets",
           companyName: "MazM",
           productName: "MazM_Studio",

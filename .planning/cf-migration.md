@@ -267,3 +267,92 @@ GitHub Pages는 **월 100GB 소프트 대역폭 한도**. 게임 1회 완전 로
 
 - HEAD 요청은 프록시 함수를 타지 않음 (위 §3 정정 참조). 실동작 영향 없음, 필요 시 1줄로 해소 가능.
 - `.data` 88MB — GitHub Pages 100MB 하드리밋까지 여유 약 12MB. 재빌드 시 크기 확인 필요.
+
+---
+
+## v2 (3.0 재빌드) — 경로·파일명 변경 대응 (2026-08-31)
+
+### 배경
+
+`v2` 브랜치(제이 커밋 `4c1d1bb`)에서 CF 배포가 다음 오류로 실패:
+
+```
+Build/Build/Build.data is 84.9 MiB
+```
+
+원인 조사 결과, 이번 재빌드는 [`jay-rebuild-handoff.md`](./jay-rebuild-handoff.md) §2("파일명을 바꾸지 마세요")를 따르지 않고
+Unity Product Name(또는 산출물 구조)이 바뀌어 파일명·경로가 `MazM_Studio_WebGL.*` → `Build/Build/Build.*` 로 변경됨.
+게다가 **옛 파일을 지우지 않고 새 파일을 추가만** 했고, `docs/Build/index.html`이라는 **`docs/index.html`과 바이트 단위로 동일한 잔재 파일**도 함께 커밋됨.
+
+### 조사 결과 — `docs/` 구조 (v2, `4c1d1bb` 기준)
+
+| 파일 | 크기 | 25MiB 초과 | 비고 |
+|---|---|---|---|
+| `docs/Build/Build/Build.data` | 89,075,480 B (84.9 MiB) | ✅ 초과 | 신규(제이) |
+| `docs/Build/Build/Build.wasm` | 41,085,993 B (39.2 MiB) | ✅ 초과 | 신규(제이). 옛 wasm(27.9MiB)보다 커짐 |
+| `docs/Build/Build/Build.framework.js` | 455,302 B | — | 신규(제이) |
+| `docs/Build/Build/Build.loader.js` | 26,982 B | — | 신규(제이) |
+| `docs/Build/MazM_Studio_WebGL.data` | 88,042,055 B (84.0 MiB) | ✅ 초과 | 구버전 잔존 (삭제 안 됨) |
+| `docs/Build/MazM_Studio_WebGL.wasm` | 29,266,930 B (27.9 MiB) | ✅ 초과 | 구버전 잔존 |
+| `docs/Build/MazM_Studio_WebGL.framework.js` | 414,939 B | — | 구버전 잔존 |
+| `docs/Build/MazM_Studio_WebGL.loader.js` | 26,982 B | — | 구버전 잔존 |
+| `docs/index.html` | 3,548 B | — | 사이트 루트 진입점 |
+| ~~`docs/Build/index.html`~~ | 3,548 B | — | **삭제함** — `docs/index.html`과 완전 동일한 잔재 |
+
+CF Pages는 참조 여부와 무관하게 출력 디렉터리 내 **모든 파일**을 25MiB 기준으로 검사하므로,
+옛 2개 + 신규 2개 = **총 4개 파일이 배포를 막고 있었음** (에러 메시지는 그중 하나만 표시).
+
+**더 심각한 문제**: `docs/index.html`이 여전히 `MazM_Studio_WebGL.*`을 참조하고 있어서, 배포 실패를 해결해도
+게임은 계속 구버전을 로드하고 신규 3.0 빌드는 전혀 쓰이지 않는 상태였음. (Birdy 확인 후 수정 진행)
+
+### 조치 (v2 브랜치, 커밋 예정)
+
+1. **`docs/index.html`** — 참조 경로를 신규 파일명으로 수정
+   - `buildPath`: `Build` → `Build/Build`
+   - `MazM_Studio_WebGL.loader.js` / `.data` / `.framework.js` / `.wasm` → `Build.loader.js` / `.data` / `.framework.js` / `.wasm`
+2. **`docs/Build/index.html` 삭제** — `docs/index.html`과 동일한 잔재 파일
+3. **`functions/Build/Build/[file].js` 신규 추가** — 새 중첩 경로(`/Build/Build/*`) 프록시
+   ```js
+   const R2_FILES = new Set(["Build.data", "Build.wasm"]);
+   // 로직은 functions/Build/[file].js와 동일, 파일명만 신규 기준
+   ```
+4. **`functions/Build/[file].js`(기존)는 그대로 유지** — `R2_FILES = {MazM_Studio_WebGL.data, MazM_Studio_WebGL.wasm}`
+   - main이 CF에서 빠지기 전까지 프로덕션(main) 보호 + v2 전환 직후에도 브라우저 캐시에 남은 구버전 `index.html`(옛 경로 요청)에 대한 하위 호환 유지
+   - CF Pages의 단일 세그먼트 동적 라우트(`[file]`)는 `/Build/Build/...`(2세그먼트)와 겹치지 않으므로 두 함수가 충돌 없이 공존함
+
+### CF 빌드 커맨드 — v2 프로젝트 대시보드에 설정할 값
+
+**Build command** (대시보드에서 이 값으로 교체):
+```
+rm -f docs/Build/MazM_Studio_WebGL.data docs/Build/MazM_Studio_WebGL.wasm docs/Build/Build/Build.data docs/Build/Build/Build.wasm
+```
+
+**Build output directory**: `docs` (변경 없음)
+
+옛 2개 + 신규 2개, 총 4개 파일을 모두 삭제해야 25MiB 검사를 통과함. R2 바인딩(`WEBGL_ASSETS` → `webgl-assets`)은 기존과 동일하게 유지 — 신규 키(`Build.data`, `Build.wasm`)도 같은 버킷에 저장하면 되므로 바인딩 추가 작업 불필요.
+
+### R2 업로드 명령 — 준비만 함, **실행은 Birdy 지시 후**
+
+```bash
+npx wrangler r2 object put webgl-assets/Build.data --file docs/Build/Build/Build.data --remote
+npx wrangler r2 object put webgl-assets/Build.wasm --file docs/Build/Build/Build.wasm --remote
+```
+
+업로드 후 검증 (기존 방식과 동일 — GET만 유효, HEAD는 오탐):
+```bash
+B=https://<v2-project-또는-preview-URL>
+for p in /Build/Build/Build.data /Build/Build/Build.wasm; do
+  echo -n "$p  "
+  curl -s -o /dev/null -w '%{http_code} %{size_download} %{content_type}\n' "$B$p"
+done
+```
+기대값: `.data` → `200 89075480`, `.wasm` → `200 41085993 application/wasm`.
+
+### 미해결 / 확인 필요
+
+- [ ] R2에 `Build.data`, `Build.wasm` 업로드 (Birdy 지시 후 실행)
+- [ ] CF 대시보드에서 v2 프로젝트의 Build command를 위 값으로 교체
+- [ ] 재배포 후 위 curl 검증 통과 확인
+- [ ] 브라우저 골든패스 확인 (게임 로드·로그인·편집·플레이)
+- [ ] `.wasm`이 39.2MiB로 커짐 — GitHub Pages 100MB 하드리밋 관련 여유는 이제 무관(CF가 유일한 서빙 경로로 전환 예정이므로)하지만, R2 저장·대역폭 산정 시 참고
+- [ ] v2가 검증되면 CF Pages 프로덕션 브랜치를 main → v2로 전환할지, v2를 main에 머지할지 결정 필요. 그 시점에 옛 라우팅(`functions/Build/[file].js`)과 구버전 R2 오브젝트 정리 여부 재검토
