@@ -364,6 +364,28 @@ done
 - [x] R2에 `Build.data`, `Build.wasm` 업로드 — 2026-08-31 완료, 바이트 검증 통과
 - [x] CF 대시보드에서 v2 프로젝트의 Build command를 `rm -f docs/Build/Build/Build.data docs/Build/Build/Build.wasm` 로 교체 — 2026-08-31 Birdy 설정 완료
 - [ ] 재배포 후 위 curl 검증 통과 확인
+
+#### ⚠️ 1차 배포 검증 결과 (2026-08-31, `https://bd952191.mazm-unity-webgl.pages.dev`)
+
+| 경로 | 상태 | 본문/타입 | 판정 |
+|---|---|---|---|
+| `/Build/Build/Build.data` | **500** | `error code: 1101` | ❌ 실패 |
+| `/Build/Build/Build.wasm` | **500** | `error code: 1101` | ❌ 실패 |
+| `/Build/Build/Build.loader.js` | 200 | `application/javascript` | ✅ |
+| `/Build/Build/Build.framework.js` | 200 | `application/javascript` | ✅ |
+| `/` | 200 | `text/html` | ✅ |
+
+**원인 (기존 §"바인딩 누락 증상은 500이 아니라 error code: 1101" 재현)**: `env.WEBGL_ASSETS`가 undefined → Functions 예외.
+정적 파일은 정상 응답했으므로 코드/라우팅 문제가 아니라 **R2 바인딩 누락**으로 특정됨.
+
+이 URL은 브랜치 해시가 붙은 **Preview 배포**. CF Pages는 Production/Preview 환경별로 바인딩이 분리되므로,
+최초 마이그레이션 때 설정한 `WEBGL_ASSETS` 바인딩이 Preview 환경에는 적용되지 않았을 가능성이 높음.
+
+**조치 필요 (대시보드)**: Settings → Functions → R2 bucket bindings에서 `WEBGL_ASSETS` → `webgl-assets`가
+**Preview** 환경에도 설정돼 있는지 확인 → 없으면 추가 → 재배포(Retry deployment).
+
+- [ ] R2 바인딩을 Preview 환경에도 추가
+- [ ] 재배포 후 위 curl 검증 재통과 확인
 - [ ] 브라우저 골든패스 확인 (게임 로드·로그인·편집·플레이)
 - [ ] `.wasm`이 39.2MiB로 커짐 — GitHub Pages 100MB 하드리밋 관련 여유는 이제 무관(CF가 유일한 서빙 경로로 전환 예정이므로)하지만, R2 저장·대역폭 산정 시 참고
 - [ ] v2가 검증되면 CF Pages 프로덕션 브랜치를 main → v2로 전환할지, v2를 main에 머지할지 결정 필요. 그 시점에 옛 라우팅(`functions/Build/[file].js`)과 구버전 R2 오브젝트 정리 여부 재검토
