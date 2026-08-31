@@ -317,19 +317,23 @@ CF Pages는 참조 여부와 무관하게 출력 디렉터리 내 **모든 파�
    // 로직은 functions/Build/[file].js와 동일, 파일명만 신규 기준
    ```
 4. **`functions/Build/[file].js`(기존)는 그대로 유지** — `R2_FILES = {MazM_Studio_WebGL.data, MazM_Studio_WebGL.wasm}`
-   - main이 CF에서 빠지기 전까지 프로덕션(main) 보호 + v2 전환 직후에도 브라우저 캐시에 남은 구버전 `index.html`(옛 경로 요청)에 대한 하위 호환 유지
+   - main이 CF에서 빠지기 전까지 프로덕션(main) 보호
    - CF Pages의 단일 세그먼트 동적 라우트(`[file]`)는 `/Build/Build/...`(2세그먼트)와 겹치지 않으므로 두 함수가 충돌 없이 공존함
+5. **`docs/Build/MazM_Studio_WebGL.*` 4개 파일을 v2에서 삭제** (2026-08-31 후속 조치)
+   - v2의 `docs/index.html`이 더 이상 이 파일들을 참조하지 않으므로 v2 트리에는 불필요
+   - `main`에는 원본이 그대로 남아 있어 안전 (main 프로덕션 배포에는 영향 없음 — 브랜치별로 독립적인 커밋 트리를 배포)
+   - ⚠️ 캐치: `.data`/`.wasm`은 R2 오브젝트가 이미 있어 `functions/Build/[file].js` 프록시로 계속 응답 가능하지만, `.loader.js`/`.framework.js`(정적 폴백 대상)는 로컬 파일이 사라졌으므로 v2 배포에서 옛 경로로 요청하면 404. v2 전환 직후 브라우저 캐시에 구버전 `index.html`이 남아 있는 사용자는 이 두 파일 요청이 실패할 수 있음 — 캐시 만료(`max-age=3600`, 최대 1시간) 이후에는 문제 없음
 
 ### CF 빌드 커맨드 — v2 프로젝트 대시보드에 설정할 값
 
 **Build command** (대시보드에서 이 값으로 교체):
 ```
-rm -f docs/Build/MazM_Studio_WebGL.data docs/Build/MazM_Studio_WebGL.wasm docs/Build/Build/Build.data docs/Build/Build/Build.wasm
+rm -f docs/Build/Build/Build.data docs/Build/Build/Build.wasm
 ```
 
 **Build output directory**: `docs` (변경 없음)
 
-옛 2개 + 신규 2개, 총 4개 파일을 모두 삭제해야 25MiB 검사를 통과함. R2 바인딩(`WEBGL_ASSETS` → `webgl-assets`)은 기존과 동일하게 유지 — 신규 키(`Build.data`, `Build.wasm`)도 같은 버킷에 저장하면 되므로 바인딩 추가 작업 불필요.
+옛 `MazM_Studio_WebGL.*` 4개는 v2 트리에서 이미 삭제됐으므로 빌드 커맨드에 옛 경로 삭제는 불필요 — 25MiB 초과인 신규 2개만 지우면 됨. R2 바인딩(`WEBGL_ASSETS` → `webgl-assets`)은 기존과 동일하게 유지 — 신규 키(`Build.data`, `Build.wasm`)도 같은 버킷에 저장하면 되므로 바인딩 추가 작업 불필요.
 
 ### R2 업로드 명령 — 준비만 함, **실행은 Birdy 지시 후**
 
