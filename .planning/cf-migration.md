@@ -363,7 +363,7 @@ done
 
 - [x] R2에 `Build.data`, `Build.wasm` 업로드 — 2026-08-31 완료, 바이트 검증 통과
 - [x] CF 대시보드에서 v2 프로젝트의 Build command를 `rm -f docs/Build/Build/Build.data docs/Build/Build/Build.wasm` 로 교체 — 2026-08-31 Birdy 설정 완료
-- [ ] 재배포 후 위 curl 검증 통과 확인
+- [x] 재배포 후 curl 검증 통과 확인 — 2026-08-31, 아래 §3차 참조
 
 #### ⚠️ 1차 배포 검증 결과 (2026-08-31, `https://bd952191.mazm-unity-webgl.pages.dev`)
 
@@ -381,11 +381,29 @@ done
 이 URL은 브랜치 해시가 붙은 **Preview 배포**. CF Pages는 Production/Preview 환경별로 바인딩이 분리되므로,
 최초 마이그레이션 때 설정한 `WEBGL_ASSETS` 바인딩이 Preview 환경에는 적용되지 않았을 가능성이 높음.
 
-**조치 필요 (대시보드)**: Settings → Functions → R2 bucket bindings에서 `WEBGL_ASSETS` → `webgl-assets`가
-**Preview** 환경에도 설정돼 있는지 확인 → 없으면 추가 → 재배포(Retry deployment).
+#### ⚠️ 2차 배포 검증 결과 (2026-08-31, `https://48d3ae20.mazm-unity-webgl.pages.dev`)
 
-- [ ] R2 바인딩을 Preview 환경에도 추가
-- [ ] 재배포 후 위 curl 검증 재통과 확인
-- [ ] 브라우저 골든패스 확인 (게임 로드·로그인·편집·플레이)
+Birdy가 Preview 바인딩을 추가했다고 판단하고 재배포했으나 **동일하게 500/1101 재현**.
+추가로 **옛 경로 프록시(`/Build/MazM_Studio_WebGL.data`, 기존 `functions/Build/[file].js`)도 같은 500/1101**임을 확인 —
+새 함수 코드 문제가 아니라 **이 배포 전체에서 바인딩이 여전히 없음**으로 범위를 좁힘.
+(참고: `/Build/Build/NoSuchFile.xyz`처럼 R2 대상이 아닌 미존재 파일은 200 — `next()` 폴백이 SPA성 기본 응답을 내는 것으로 보이며 바인딩과 무관)
+
+원인: 바인딩을 추가한 탭이 Production이었거나, 최신 Pages UI의 브랜치별 Preview 바인딩 범위에 `v2`가 빠져 있었을 가능성.
+
+#### ✅ 3차 배포 검증 결과 — 통과 (2026-08-31, `https://v2.mazm-unity-webgl.pages.dev`)
+
+Preview 바인딩 재확인(`WEBGL_ASSETS` 등록 확인) 후 재배포. 5개 경로 모두 통과:
+
+| 경로 | 상태 | 크기 | Content-Type | 판정 |
+|---|---|---|---|---|
+| `/Build/Build/Build.data` | 200 | 89,075,480 | (없음) | ✅ 업로드 원본과 정확히 일치 |
+| `/Build/Build/Build.wasm` | 200 | 41,085,993 | `application/wasm` | ✅ |
+| `/Build/Build/Build.loader.js` | 200 | 26,982 | `application/javascript` | ✅ |
+| `/Build/Build/Build.framework.js` | 200 | 455,302 | `application/javascript` | ✅ |
+| `/` | 200 | 3,506 | `text/html` | ✅ |
+
+`.data`의 Content-Type 없음은 R2 객체에 메타데이터가 없기 때문 (기존 마이그레이션과 동일한 정상 패턴, Unity 로더 동작에 영향 없음).
+
+- [ ] 브라우저 골든패스 확인 (게임 로드·로그인·편집·플레이) — `https://v2.mazm-unity-webgl.pages.dev`
 - [ ] `.wasm`이 39.2MiB로 커짐 — GitHub Pages 100MB 하드리밋 관련 여유는 이제 무관(CF가 유일한 서빙 경로로 전환 예정이므로)하지만, R2 저장·대역폭 산정 시 참고
 - [ ] v2가 검증되면 CF Pages 프로덕션 브랜치를 main → v2로 전환할지, v2를 main에 머지할지 결정 필요. 그 시점에 옛 라우팅(`functions/Build/[file].js`)과 구버전 R2 오브젝트 정리 여부 재검토
