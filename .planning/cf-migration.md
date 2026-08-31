@@ -362,7 +362,7 @@ done
 ### 미해결 / 확인 필요
 
 - [x] R2에 `Build.data`, `Build.wasm` 업로드 — 2026-08-31 완료, 바이트 검증 통과
-- [ ] CF 대시보드에서 v2 프로젝트의 Build command를 `rm -f docs/Build/Build/Build.data docs/Build/Build/Build.wasm` 로 교체
+- [x] CF 대시보드에서 v2 프로젝트의 Build command를 `rm -f docs/Build/Build/Build.data docs/Build/Build/Build.wasm` 로 교체 — 2026-08-31 Birdy 설정 완료
 - [ ] 재배포 후 위 curl 검증 통과 확인
 - [ ] 브라우저 골든패스 확인 (게임 로드·로그인·편집·플레이)
 - [ ] `.wasm`이 39.2MiB로 커짐 — GitHub Pages 100MB 하드리밋 관련 여유는 이제 무관(CF가 유일한 서빙 경로로 전환 예정이므로)하지만, R2 저장·대역폭 산정 시 참고
