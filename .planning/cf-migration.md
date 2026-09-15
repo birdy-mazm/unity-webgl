@@ -407,3 +407,5 @@ Preview 바인딩 재확인(`WEBGL_ASSETS` 등록 확인) 후 재배포. 5개 �
 - [ ] 브라우저 골든패스 확인 (게임 로드·로그인·편집·플레이) — `https://v2.mazm-unity-webgl.pages.dev`
 - [ ] `.wasm`이 39.2MiB로 커짐 — GitHub Pages 100MB 하드리밋 관련 여유는 이제 무관(CF가 유일한 서빙 경로로 전환 예정이므로)하지만, R2 저장·대역폭 산정 시 참고
 - [ ] v2가 검증되면 CF Pages 프로덕션 브랜치를 main → v2로 전환할지, v2를 main에 머지할지 결정 필요. 그 시점에 옛 라우팅(`functions/Build/[file].js`)과 구버전 R2 오브젝트 정리 여부 재검토
+
+v3: R2 키 v3/ 접두, config.json은 docs/Build/StreamingAssets/

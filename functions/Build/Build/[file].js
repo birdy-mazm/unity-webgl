@@ -6,7 +6,7 @@ const R2_FILES = new Set([
 export async function onRequestGet({ params, env, next }) {
   if (!R2_FILES.has(params.file)) return next(); // .js 등은 Pages 정적 파일로 통과
 
-  const obj = await env.WEBGL_ASSETS.get(params.file);
+  const obj = await env.WEBGL_ASSETS.get("v3/" + params.file);
   if (!obj) return new Response("Not found", { status: 404 });
 
   const headers = new Headers();
