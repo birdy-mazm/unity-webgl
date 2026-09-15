@@ -409,3 +409,11 @@ Preview 바인딩 재확인(`WEBGL_ASSETS` 등록 확인) 후 재배포. 5개 �
 - [ ] v2가 검증되면 CF Pages 프로덕션 브랜치를 main → v2로 전환할지, v2를 main에 머지할지 결정 필요. 그 시점에 옛 라우팅(`functions/Build/[file].js`)과 구버전 R2 오브젝트 정리 여부 재검토
 
 v3: R2 키 v3/ 접두, config.json은 docs/Build/StreamingAssets/
+
+## Worker 우회(비상) 절차 — 2026-09-15
+구글이 CF 발신 IP를 차단하거나 Worker 장애 시, 재빌드 없이 게임을 구글 직접 호출로 되돌린다.
+1. docs/Build/StreamingAssets/config.json 의 gasUrl 을 아래로 교체 후 v3에 커밋
+   https://script.google.com/macros/s/AKfycbxk1zsu1C9DBXse53CKws3nmdboVlH6Wl6UY6AvRT1fUsjo-VDvjyhNyLFIBHL7SYNC/exec
+2. 학생은 새로고침만 하면 반영 (config.json은 no-cache)
+3. 복구 시 gasUrl 을 https://gas.mazm.dev/exec 로 되돌림
+징후: Worker 로그에 google-error-page 반복, 또는 게임 오류 문구에 "gas-proxy upstream failed" 반복
