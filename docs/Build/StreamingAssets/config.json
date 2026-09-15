@@ -1,7 +1,7 @@
 {
-  "configVersion": "2026-09-15-proxy-tuned",
+  "configVersion": "2026-09-15-proxy-tuned-v2",
   "gasUrl": "https://gas.mazm.dev/exec",
-  "requestTimeoutSeconds": 18,
+  "requestTimeoutSeconds": 20,
   "maxRetries": 1,
   "retryBaseDelaySeconds": 0.5,
   "totalBudgetSeconds": 60
