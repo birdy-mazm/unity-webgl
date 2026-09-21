@@ -417,3 +417,5 @@ v3: R2 키 v3/ 접두, config.json은 docs/Build/StreamingAssets/
 2. 학생은 새로고침만 하면 반영 (config.json은 no-cache)
 3. 복구 시 gasUrl 을 https://gas.mazm.dev/exec 로 되돌림
 징후: Worker 로그에 google-error-page 반복, 또는 게임 오류 문구에 "gas-proxy upstream failed" 반복
+
+새 빌드 전환 시 docs/index.html의 ?v= 값을 올린다(예: v4 → ?v=4.0). R2 키 접두와 함께 바꾼다.
